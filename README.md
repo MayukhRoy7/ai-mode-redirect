@@ -1,19 +1,19 @@
 # AI Mode Redirect
 
-A Chromium extension (Manifest V3) for **Brave** (and any Chromium-based browser) that sends you straight to **Google AI Mode** with a single click of the pinned toolbar icon.
+A Chromium extension (Manifest V3) for **Brave**, **Chrome**, **Edge**, and any other Chromium-based browser that sends you straight to **Google AI Mode** with a single click of the pinned toolbar icon.
 
 ## Behaviour
 
 | Where you are | What happens |
 |---|---|
-| Any page that is **not** a Brave Search results page | Opens **Google AI Mode** (`google.com/search?udm=50`) in the current tab |
-| A **Brave Search** results page (`search.brave.com/search?q=<term>…`) | Extracts your search term and opens it in **Google AI Mode** (`google.com/search?q=<term>&udm=50`) in the current tab |
+| Any page that is **not** a Google Search results page | Opens **Google AI Mode** (`google.com/search?udm=50`) in the current tab |
+| A **Google Search** results page (`google.com/search?q=<term>…`) | Extracts your search term and re-opens it in **Google AI Mode** (`google.com/search?q=<term>&udm=50`) in the current tab |
 
 ### Example
 
-You search for **oxidized** on Brave Search:
+You search for **oxidized** on Google:
 ```
-https://search.brave.com/search?q=oxidized&source=desktop
+https://www.google.com/search?q=oxidized
 ```
 Clicking the icon takes you to:
 ```
