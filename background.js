@@ -2,8 +2,8 @@
  * AI Mode Redirect – background service worker
  *
  * Behaviour when the toolbar icon is clicked:
- *  • If the active tab is a Brave Search results page
- *    (https://search.brave.com/search?q=<term>…), the search term is
+ *  • If the active tab is a Google Search results page
+ *    (https://www.google.com/search?q=<term>…), the search term is
  *    extracted and the tab is navigated to Google AI Mode with that query.
  *  • On any other page, the tab is navigated to the bare Google AI Mode URL.
  */
@@ -18,9 +18,9 @@ chrome.action.onClicked.addListener((tab) => {
   try {
     const url = new URL(rawUrl);
 
-    // Detect Brave Search results page
+    // Detect Google Search results page
     if (
-      url.hostname === "search.brave.com" &&
+      url.hostname === "www.google.com" &&
       url.pathname === "/search"
     ) {
       const query = url.searchParams.get("q");
