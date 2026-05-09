@@ -1,40 +1,93 @@
 /**
- * AI Mode Redirect – background service worker
+ * AI Mode Redirect – background service worker (v2)
  *
- * Behaviour when the toolbar icon is clicked:
- *  • If the active tab is a Google Search results page
- *    (https://www.google.com/search?q=<term>…), the search term is
- *    extracted and the tab is navigated to Google AI Mode with that query.
- *  • On any other page, the tab is navigated to the bare Google AI Mode URL.
+ * Reads the user's chosen search engine and AI mode provider from
+ * chrome.storage.sync, then on toolbar-icon click:
+ *
+ *  • If the active tab is a results page of the SELECTED search engine,
+ *    extracts the search query and opens it in the SELECTED AI mode.
+ *  • On any other page (including the non-selected search engine),
+ *    opens the SELECTED AI mode without a query.
+ *
+ * Supported search engines: "brave" | "google"
+ * Supported AI mode providers: "brave" | "google"
+ *
+ * Defaults (if not yet configured): searchEngine="brave", aiMode="brave"
  */
 
-const GOOGLE_AI_MODE_BASE = "https://www.google.com/search?udm=50";
+// ---------------------------------------------------------------------------
+// URL helpers
+// ---------------------------------------------------------------------------
 
-chrome.action.onClicked.addListener((tab) => {
-  const rawUrl = tab.url || "";
+const SEARCH_ENGINE_HOSTS = {
+  brave: "search.brave.com",
+  google: "www.google.com",
+};
 
-  let targetUrl = GOOGLE_AI_MODE_BASE;
-
+function isSelectedSearchEngine(url, engine) {
   try {
-    const url = new URL(rawUrl);
-
-    // Detect Google Search results page
-    if (
-      url.hostname === "www.google.com" &&
-      url.pathname === "/search"
-    ) {
-      const query = url.searchParams.get("q");
-      if (query && query.trim() !== "") {
-        targetUrl =
-          "https://www.google.com/search?q=" +
-          encodeURIComponent(query.trim()) +
-          "&udm=50";
-      }
+    const parsed = new URL(url);
+    if (engine === "brave") {
+      return (
+        parsed.hostname === SEARCH_ENGINE_HOSTS.brave &&
+        parsed.pathname === "/search"
+      );
+    }
+    if (engine === "google") {
+      return (
+        parsed.hostname === SEARCH_ENGINE_HOSTS.google &&
+        parsed.pathname === "/search"
+      );
     }
   } catch (_) {
-    // new URL() throws for non-HTTP tabs (e.g. chrome://, about:blank).
-    // In those cases we fall through and open the bare AI Mode URL.
+    // non-HTTP tabs (chrome://, about:blank, …)
   }
+  return false;
+}
 
-  chrome.tabs.update(tab.id, { url: targetUrl });
+function extractQuery(url) {
+  try {
+    const parsed = new URL(url);
+    const q = parsed.searchParams.get("q");
+    return q && q.trim() !== "" ? q.trim() : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function buildAiModeUrl(aiMode, query) {
+  if (aiMode === "brave") {
+    const base = "https://search.brave.com/ask";
+    return query
+      ? base + "?q=" + encodeURIComponent(query)
+      : base;
+  }
+  // google
+  const base = "https://www.google.com/search?udm=50";
+  return query
+    ? "https://www.google.com/search?q=" +
+        encodeURIComponent(query) +
+        "&udm=50"
+    : base;
+}
+
+// ---------------------------------------------------------------------------
+// Main click handler
+// ---------------------------------------------------------------------------
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.storage.sync.get(
+    { searchEngine: "brave", aiMode: "brave" },
+    ({ searchEngine, aiMode }) => {
+      const rawUrl = tab.url || "";
+      let query = null;
+
+      if (isSelectedSearchEngine(rawUrl, searchEngine)) {
+        query = extractQuery(rawUrl);
+      }
+
+      const targetUrl = buildAiModeUrl(aiMode, query);
+      chrome.tabs.update(tab.id, { url: targetUrl });
+    }
+  );
 });
