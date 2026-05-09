@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "AI Mode Redirect",
-  "version": "1.0.0",
-  "description": "Click to open Google AI Mode. On Brave Search pages, extracts your search term and opens it in Google AI Mode.",
+  "version": "2.0.0",
+  "description": "One-click redirect to your preferred AI mode. Configure your search engine (Brave or Google) and AI mode provider (Brave or Google) via the options page.",
   "action": {
-    "default_title": "Open Google AI Mode",
+    "default_title": "Open AI Mode",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -14,8 +14,13 @@
   "background": {
     "service_worker": "background.js"
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "permissions": [
     "activeTab",
-    "tabs"
+    "tabs",
+    "storage"
   ]
 }
